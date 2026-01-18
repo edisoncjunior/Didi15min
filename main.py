@@ -1,4 +1,9 @@
-﻿# Near+5 Didi funcionando (local e web) = coloquei pra rodar local 23h55 sábado 17/01
+﻿# Near+5 Didi funcionando (local e web) = 
+# coloquei pra rodar local 23h55 sábado 17/01 e funcionou
+# coloquei pra rodar web dia 18/01 as 09h09
+
+#proximos testes = 1) aumentar para 120 tempo para reduzir as duplicidades 2) colocar log para enviar as 9 e 21h
+# antes de fazer os testes -> desligar a versão web ou mudar o grupo?
 
 #!/usr/bin/env python3
 """
@@ -36,6 +41,10 @@ BINANCE_API_KEY = os.getenv("BINANCE_API_KEY") or ""
 BINANCE_API_SECRET = os.getenv("BINANCE_API_SECRET") or ""
 POLL_SECONDS = int(os.getenv("POLL_SECONDS") or 60)
 KLINES_LIMIT = int(os.getenv("KLINES_LIMIT") or 200)
+
+if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
+    LOGGER.error("TELEGRAM_TOKEN and TELEGRAM_CHAT_ID must be set in .env")
+    sys.exit(1)
 
 BOLLINGER_PERIOD = 8
 BOLLINGER_STD = 2
