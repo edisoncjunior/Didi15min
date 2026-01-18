@@ -1,4 +1,4 @@
-﻿#Didi_ECJ15min - aplicação funcionando! (falta comparar com a Agulhadas)
+﻿# Near+5 Didi funcionando (local e web) = coloquei pra rodar local 23h55 sábado 17/01
 
 #!/usr/bin/env python3
 """
@@ -20,6 +20,7 @@ import sys
 import time
 import signal
 import logging
+import asyncio
 from datetime import datetime, timezone, timedelta
 import requests
 import numpy as np
@@ -33,7 +34,7 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 BINANCE_API_KEY = os.getenv("BINANCE_API_KEY") or ""
 BINANCE_API_SECRET = os.getenv("BINANCE_API_SECRET") or ""
-POLL_SECONDS = int(os.getenv("POLL_SECONDS") or 120)
+POLL_SECONDS = int(os.getenv("POLL_SECONDS") or 60)
 KLINES_LIMIT = int(os.getenv("KLINES_LIMIT") or 200)
 
 BOLLINGER_PERIOD = 8
@@ -57,20 +58,30 @@ FIXED_SYMBOLS = [
 #    "JUPUSDT", "KAVAUSDT", "KNCUSDT", "LINKUSDT", "LPTUSDT", "LQTYUSDT", "LTCUSDT", "MASKUSDT", "MTLUSDT",
     "NEARUSDT",
 #    "NEOUSDT", "OGNUSDT", "ONEUSDT", "OPUSDT", "PEOPLEUSDT", "RLCUSDT", "RSRUSDT", "RUNEUSDT",
-    "SANDUSDT", "SFPUSDT", "SKLUSDT", "SNXUSDT", "SOLUSDT",
+#    "SANDUSDT", "SFPUSDT", "SKLUSDT", "SNXUSDT", "SOLUSDT",
     "STORJUSDT",
 #    "SUIUSDT", "SUSHIUSDT", "SXPUSDT", "THETAUSDT", "TIAUSDT", "TONUSDT", "TRBUSDT", "TRXUSDT",
 #    "UNIUSDT", "VETUSDT", "WOOUSDT", "XLMUSDT", "XMRUSDT",
     "XRPUSDT", 
     "XTZUSDT",
-    "ZENUSDT",
+#    "ZENUSDT",
     "ZILUSDT",
     "ZRXUSDT"
 ]
 
-# Logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+LOG_FILE = "scanner_runtime.log"
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    handlers=[
+        logging.FileHandler(LOG_FILE, encoding="utf-8"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+
 LOGGER = logging.getLogger("scanner")
+
 
 if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
     LOGGER.error("TELEGRAM_TOKEN and TELEGRAM_CHAT_ID must be set in .env")
@@ -278,20 +289,21 @@ SHUTDOWN = False
 def handle_sigint(sig, frame):
     global SHUTDOWN
     SHUTDOWN = True
-    send_telegram(f"🤖 Scanner (NEAR+10) interrompido pelo usuário em {utc_minus_3_now_str()}.")
+    send_telegram(f"🤖 Scanner (NEAR+5) interrompido pelo usuário em {utc_minus_3_now_str()}.")
     LOGGER.info("Interrupção solicitada. Encerrando...")
 
 signal.signal(signal.SIGINT, handle_sigint)
 signal.signal(signal.SIGTERM, handle_sigint)
 
 def main_loop():
-    send_telegram(f"🤖 Scanner 15min (NEAR+10) iniciado em {utc_minus_3_now_str()} — Binance Futures (15m).")
-    LOGGER.info("Iniciado scanner (NEAR+10) com lista fixa de símbolos.")
+    send_telegram(f"🤖 Scanner 15min (NEAR+5) iniciado em {utc_minus_3_now_str()} — Binance Futures (15m).")
+    LOGGER.info("Iniciado scanner com lista fixa de símbolos.")
 
     while not SHUTDOWN:
         try:
             symbols = FIXED_SYMBOLS
             LOGGER.info("Verificando %d símbolos fixos: %s", len(symbols), ", ".join(symbols))
+            LOGGER.info("Novo ciclo iniciado (%s símbolos)", len(FIXED_SYMBOLS))
             alerts = []
             for sym in symbols:
                 try:
@@ -299,8 +311,16 @@ def main_loop():
                     if res:
                         alerts.append(res)
                         msg = build_alert_message(res)
+
+                        # 1️⃣ tenta gravar log (NUNCA pode quebrar o fluxo)
+                        try:
+                            log_signal_to_file(res)
+                        except Exception as e:
+                            LOGGER.exception("Falha ao registrar log (ignorado): %s", e)
+
+                        # 2️⃣ envia Telegram SEMPRE
                         send_telegram(msg)
-                        log_signal_to_file(res)   # <<< grava o sinal no arquivo
+
                         LOGGER.info("Alerta enviado: %s %s", res["symbol"], res["side"])
                 except Exception as e:
                     LOGGER.debug("Erro analisando %s: %s", sym, e)
@@ -314,6 +334,7 @@ def main_loop():
                 break
             time.sleep(1)
     LOGGER.info("Scanner finalizado.")
+    LOGGER.info("Ciclo finalizado")
 
 def build_alert_message(res):
     sym = res["symbol"]
@@ -327,7 +348,7 @@ def build_alert_message(res):
     # Compose TPs text
     tps_text = "\n".join([f"TP{i+1}: {tp:.8f}" for i,tp in enumerate(tps)])
     msg = (
-        f"🚨 <b>ALERTA 15min (NEAR+10)</b>\n"
+        f"🚨 <b>ALERTA 15min (NEAR+5)</b>\n"
         f"Exchange: Binance Futures\n"
         f"Par: <b>{sym}</b>\n"
         f"Horário SP: {now}\n"
@@ -343,7 +364,13 @@ def build_alert_message(res):
     )
     return msg
 
-LOG_FILE = "signals_15m.tsv"
+def get_daily_log_filename(date=None):
+    tz = timezone(timedelta(hours=-3))
+    if date is None:
+        date = datetime.now(tz)
+
+    day_str = date.strftime("%Y-%m-%d")
+    return f"telegram_signals_{day_str}.tsv"
 
 def log_signal_to_file(res, timeframe="15m", exchange="Binance Futures"):
     """
@@ -353,7 +380,7 @@ def log_signal_to_file(res, timeframe="15m", exchange="Binance Futures"):
     now = datetime.now(tz)
 
     header = (
-        "symbol\tdate\ttime\ttimeframe\texchange\tprice\tside\t"
+        "symbol\talert_date\talert_time\ttimeframe\texchange\tprice\tside\t"
         "adx\tatr\tbb_width\tentry\ttp1\ttp2\ttp3\tbb_baseline\tstrategy\n"
     )
 
@@ -376,12 +403,18 @@ def log_signal_to_file(res, timeframe="15m", exchange="Binance Futures"):
         f"SMA(3,8,20)+ADX+BB\n"
     )
 
-    file_exists = os.path.isfile(LOG_FILE)
+    log_file = get_daily_log_filename()
+    file_exists = os.path.isfile(log_file)
 
-    with open(LOG_FILE, "a", encoding="utf-8") as f:
-        if not file_exists:
-            f.write(header)
-        f.write(row)
+    try:
+        with open(log_file, "a", encoding="utf-8") as f:
+            if not file_exists:
+                f.write(header)
+            f.write(row)
+            LOGGER.info("Log gravado com sucesso: %s", log_file)
+    except Exception as e:
+        LOGGER.exception("Erro ao gravar log em arquivo (%s): %s", log_file, e)
+
 
 
 if __name__ == "__main__":
