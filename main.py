@@ -258,7 +258,7 @@ def compute_targets(df, side):
 def analyze_symbol(symbol):
     try:
         df = fetch_klines(symbol, interval="15m", limit=KLINES_LIMIT)
-#        df = df.iloc[:-1] # remove candles ainda abertos
+        df = df.iloc[:-1] # remove candles ainda abertos
     except Exception as e:
         LOGGER.debug("Erro ao buscar klines %s: %s", symbol, e)
         return None
