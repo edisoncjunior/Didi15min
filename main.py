@@ -1,6 +1,6 @@
 ﻿# Near+5 Didi funcionando (local e web) = 
 # coloquei pra rodar local 23h55 sábado 17/01 e funcionou
-# coloquei pra rodar web dia 18/01 as 09h09
+# coloquei pra rodar web dia 18/01 as 23h38 
 
 #proximos testes = 1) colocar log para enviar as 9 e 21h
 # antes de fazer os testes -> desligar a versão web ou mudar o grupo?
@@ -258,7 +258,7 @@ def compute_targets(df, side):
 def analyze_symbol(symbol):
     try:
         df = fetch_klines(symbol, interval="15m", limit=KLINES_LIMIT)
-        df = df.iloc[:-1] # remove candles ainda abertos
+#        df = df.iloc[:-1] # remove candles ainda abertos
     except Exception as e:
         LOGGER.debug("Erro ao buscar klines %s: %s", symbol, e)
         return None
@@ -303,7 +303,7 @@ def handle_sigint(sig, frame):
     LOGGER.info("Interrupção solicitada. Encerrando...")
 
 signal.signal(signal.SIGINT, handle_sigint)
-signal.signal(signal.SIGTERM, handle_sigint)
+# signal.signal(signal.SIGTERM, handle_sigint)
 
 def main_loop():
     send_telegram(f"🤖 Scanner 15min (NEAR+5) iniciado em {utc_minus_3_now_str()} — Binance Futures (15m).")
