@@ -2,7 +2,7 @@
 # coloquei pra rodar local 23h55 sábado 17/01 e funcionou
 # coloquei pra rodar web dia 18/01 as 09h09
 
-#proximos testes = 1) aumentar para 120 tempo para reduzir as duplicidades 2) colocar log para enviar as 9 e 21h
+#proximos testes = 1) colocar log para enviar as 9 e 21h
 # antes de fazer os testes -> desligar a versão web ou mudar o grupo?
 
 #!/usr/bin/env python3
@@ -258,6 +258,7 @@ def compute_targets(df, side):
 def analyze_symbol(symbol):
     try:
         df = fetch_klines(symbol, interval="15m", limit=KLINES_LIMIT)
+        df = df.iloc[:-1] # remove candles ainda abertos
     except Exception as e:
         LOGGER.debug("Erro ao buscar klines %s: %s", symbol, e)
         return None
