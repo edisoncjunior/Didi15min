@@ -1,4 +1,4 @@
-﻿# Near+5 Didi funcionando (local e web) = 
+﻿# MEXC-TXZERO Didi funcionando (local e web) = 
 # coloquei pra rodar local 23h55 sábado 17/01 e funcionou
 # coloquei pra rodar web dia 18/01 as 23h38 
 
@@ -60,22 +60,24 @@ BINANCE_FAPI = "https://fapi.binance.com"   # futures api (perpetual)
 # LISTA FIXA DE ATIVOS
 # ==========================
 FIXED_SYMBOLS = [
-#    "APEUSDT", "1INCHUSDT", "ADAUSDT", "ALICEUSDT", "ANKRUSDT", "ARBUSDT", "ATAUSDT", "BANDUSDT", "BCHUSDT",
-#    "BELUSDT", "BNBUSDT", "BTCUSDT", "CELOUSDT", "CHZUSDT", "CYBERUSDT", "DASHUSDT", "DOTUSDT", "DYDXUSDT",
-#    "EGLDUSDT", "ENJUSDT", "ENSUSDT", "ETCUSDT", "ETHUSDT", "FETUSDT", "FILUSDT", "FLMUSDT", "GMTUSDT",
-#    "GRTUSDT", "GTCUSDT", "HBARUSDT", "HOTUSDT", "ICPUSDT", "ICXUSDT", "IMXUSDT", "JASMYUSDT", "JTOUSDT",
+#    "APEUSDT", "1INCHUSDT", 
+    "ADAUSDT", "ALGOUSDT"
+#    "ALICEUSDT", "ANKRUSDT", "ARBUSDT", "ATAUSDT", "BANDUSDT", "BCHUSDT",
+#    "BELUSDT", "BNBUSDT", "BTCUSDT", "CELOUSDT", "CHZUSDT", "CYBERUSDT", "DASHUSDT", 
+#    "DOTUSDT", "DYDXUSDT", "EGLDUSDT", "ENJUSDT", "ENSUSDT", "ETCUSDT", "ETHUSDT", "FETUSDT", "FILUSDT",
+#    "GMTUSDT", "GRTUSDT", "GTCUSDT", "HOTUSDT",
+    "HBARUSDT", "ICPUSDT", 
+#     "ICXUSDT", "IMXUSDT", "JASMYUSDT", "JTOUSDT",
 #    "JUPUSDT", "KAVAUSDT", "KNCUSDT", "LINKUSDT", "LPTUSDT", "LQTYUSDT", "LTCUSDT", "MASKUSDT", "MTLUSDT",
-    "NEARUSDT",
+    "NEARUSDT", "OPUSDT"
 #    "NEOUSDT", "OGNUSDT", "ONEUSDT", "OPUSDT", "PEOPLEUSDT", "RLCUSDT", "RSRUSDT", "RUNEUSDT",
 #    "SANDUSDT", "SFPUSDT", "SKLUSDT", "SNXUSDT", "SOLUSDT",
-    "STORJUSDT",
-#    "SUIUSDT", "SUSHIUSDT", "SXPUSDT", "THETAUSDT", "TIAUSDT", "TONUSDT", "TRBUSDT", "TRXUSDT",
+#    "STORJUSDT", 
+    "SUIUSDT", 
+#    "SUSHIUSDT", "SXPUSDT", "THETAUSDT", "TIAUSDT", "TONUSDT", "TRBUSDT", "TRXUSDT",
 #    "UNIUSDT", "VETUSDT", "WOOUSDT", "XLMUSDT", "XMRUSDT",
     "XRPUSDT", 
-    "XTZUSDT",
-#    "ZENUSDT",
-    "ZILUSDT",
-    "ZRXUSDT"
+#    "XTZUSDT", "ZENUSDT", "ZILUSDT", "ZRXUSDT"
 ]
 
 LOG_FILE = "scanner_runtime.log"
@@ -299,14 +301,14 @@ SHUTDOWN = False
 def handle_sigint(sig, frame):
     global SHUTDOWN
     SHUTDOWN = True
-    send_telegram(f"🤖 Scanner (NEAR+5) interrompido pelo usuário em {utc_minus_3_now_str()}.")
+    send_telegram(f"🤖 Scanner (MEXC-TXZERO) interrompido pelo usuário em {utc_minus_3_now_str()}.")
     LOGGER.info("Interrupção solicitada. Encerrando...")
 
 signal.signal(signal.SIGINT, handle_sigint)
 # signal.signal(signal.SIGTERM, handle_sigint)
 
 def main_loop():
-    send_telegram(f"🤖 Scanner 15min (NEAR+5) iniciado em {utc_minus_3_now_str()} — Binance Futures (15m).")
+    send_telegram(f"🤖 Scanner 15min (MEXC-TXZERO) iniciado em {utc_minus_3_now_str()} — Binance Futures (15m).")
     LOGGER.info("Iniciado scanner com lista fixa de símbolos.")
 
     while not SHUTDOWN:
@@ -330,6 +332,7 @@ def main_loop():
 
                         # 2️⃣ envia Telegram SEMPRE
                         send_telegram(msg)
+                        LOGGER.info(msg) #adicionado
 
                         LOGGER.info("Alerta enviado: %s %s", res["symbol"], res["side"])
                 except Exception as e:
@@ -358,7 +361,7 @@ def build_alert_message(res):
     # Compose TPs text
     tps_text = "\n".join([f"TP{i+1}: {tp:.8f}" for i,tp in enumerate(tps)])
     msg = (
-        f"🚨 <b>ALERTA 15min (NEAR+5)</b>\n"
+        f"🚨 <b>ALERTA 15min (MEXC-TXZERO)</b>\n"
         f"Exchange: Binance Futures\n"
         f"Par: <b>{sym}</b>\n"
         f"Horário SP: {now}\n"
