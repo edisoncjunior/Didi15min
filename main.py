@@ -24,7 +24,6 @@ import pandas as pd
 from datetime import datetime
 import pytz
 
-#TESTE
 # =========================================================
 # CONFIGURAÇÃO DE AMBIENTE (Railway / GitHub)
 # =========================================================
@@ -35,7 +34,7 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 POLL_SECONDS = int(os.getenv("POLL_SECONDS", 120))
 KLINES_LIMIT = int(os.getenv("KLINES_LIMIT", 200))
 
-BINANCE_FAPI = "https://fapi.binance.com"
+BINANCE_FAPI = "https://api.binance.com"
 
 # =========================================================
 # PARÂMETROS DE ESTRATÉGIA
@@ -88,7 +87,7 @@ def now_sp_str():
 
 def send_telegram(text):
     try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+        url = f"{BINANCE_FAPI}/api/v3/klines"
         payload = {
             "chat_id": TELEGRAM_CHAT_ID,
             "text": text,
