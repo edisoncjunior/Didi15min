@@ -24,6 +24,8 @@ import pandas as pd
 from datetime import datetime
 import pytz
 
+load_dotenv()
+
 # =========================================================
 # CONFIGURAÇÃO DE AMBIENTE (Railway / GitHub)
 # =========================================================
